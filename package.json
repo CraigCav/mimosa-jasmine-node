@@ -1,0 +1,34 @@
+{
+  "name": "mimosa-jasmine-node",
+  "version": "0.0.1",
+  "homepage": "https://github.com/craigcav/mimosa-jasmine-node",
+  "author": "Craig Cavalier",
+  "description": "Mimosa module for kicking of your node test suite - whenever you make changes to your code!",
+  "contributors": [
+    {
+      "name": "Craig Cavalier",
+      "email": "craigcav@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/craigcav/mimosa-jasmine-node"
+  },
+  "keywords": [
+    "mimosa",
+    "mmodule",
+    "jasmine",
+    "jasmine-node",
+    "auto-watch",
+    "testing"
+  ],
+  "dependencies": {
+    "logmimosa": "0.4.0",
+    "jasmine-node": "1.7.0",
+    "chokidar": "0.6.2"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=0.8"
+  }
+}
