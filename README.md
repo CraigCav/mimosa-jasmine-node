@@ -22,5 +22,6 @@ Design notes, pay no attention
 * need to clean up jasmine test suite after reporting test results
 * need to hook into mimosas watch functionailty to monitor test/spec dirs and src dirs
 
-License
-MIT license - http://www.opensource.org/licenses/mit-license.php
+##License
+
+MIT license - [http://www.opensource.org/licenses/mit-license.php](http://www.opensource.org/licenses/mit-license.php)
