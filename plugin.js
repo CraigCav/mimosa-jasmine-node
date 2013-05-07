@@ -19,14 +19,17 @@ var _runTests = function(config) {
   jasmine.executeSpecsInFolder(config.jasmine_node);
 };
 
-var _addWatch = function(config) {
+var _addWatch = function(config, options, next) {
   //TODO: consider moving these checks to config.js
   var specFolders = config.jasmine_node.specFolders || [];
   var sourceFolders = config.serverReload ? config.serverReload.watch || [] : [];
   var dirsToWatch = specFolders.concat(sourceFolders);
   var serverReloading = false;
 
-  if(!dirsToWatch.length > 0) return;
+  if(!dirsToWatch.length > 0) {
+    next();
+    return;
+  }
 
   var throttledTestRunner = withTimeout(function () {
     _runTests(config);
@@ -37,7 +40,7 @@ var _addWatch = function(config) {
       logger.green(action + ' file: "' + path.normalize(file) + '"');
 
       if(serverReloading) 
-        setTimeout(throttledTestRunner, 200);
+        setTimeout(throttledTestRunner, 500);
       else
         throttledTestRunner();            
     };
@@ -54,7 +57,7 @@ var _addWatch = function(config) {
   };
 
   watch.watch(sourceFolders, { ignored: ignoreFiles, persistent: true })
-    .on('change', function () {
+    .on('all', function () {
       serverReloading = true;
     });
 
@@ -62,10 +65,12 @@ var _addWatch = function(config) {
 
   watcher.on('change', run('Changed'));
   watcher.on('unlink', run('Removed'));
-  watcher.on('add', run('Added'));
+  watcher.on('add', run('Watching'));
   watcher.on('error', function (error) {
     //Doing nothing at the moment, just need to trap error event
   });
+
+  next();
 };
 
 function withTimeout (func, wait) {
