@@ -24,14 +24,22 @@ var _addWatch = function(config) {
   var specFolders = config.jasmine_node.specFolders || [];
   var sourceFolders = config.serverReload ? config.serverReload.watch || [] : [];
   var dirsToWatch = specFolders.concat(sourceFolders);
+  var serverReloading = false;
 
   if(!dirsToWatch.length > 0) return;
+
+  var throttledTestRunner = withTimeout(function () {
+    _runTests(config);
+  }, config.jasmine_node.throttleTimeout || 100);
 
   var run = function (action) {
     return function (file) {
       logger.green(action + ' file: "' + path.normalize(file) + '"');
 
-      _runTests(config);            
+      if(serverReloading) 
+        setTimeout(throttledTestRunner, 200);
+      else
+        throttledTestRunner();            
     };
   };
 
@@ -45,6 +53,11 @@ var _addWatch = function(config) {
     return false;
   };
 
+  watch.watch(sourceFolders, { ignored: ignoreFiles, persistent: true })
+    .on('change', function () {
+      serverReloading = true;
+    });
+
   var watcher = watch.watch(dirsToWatch, { ignored: ignoreFiles, persistent: true });
 
   watcher.on('change', run('Changed'));
@@ -53,8 +66,20 @@ var _addWatch = function(config) {
   watcher.on('error', function (error) {
     //Doing nothing at the moment, just need to trap error event
   });
-
 };
+
+function withTimeout (func, wait) {
+    var throttling = false;
+    return function(){
+        if ( !throttling ){
+            func.apply(this, arguments);
+            throttling = true;
+            setTimeout(function(){
+                throttling = false;
+            }, wait);            
+        }
+    };
+}
 
 module.exports = {
   registration: registration
