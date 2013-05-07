@@ -20,7 +20,6 @@ Design notes, pay no attention
 * inline the test results, simple output format if possible, keep minimal
 * Make config-less with config options in mimosaconfig rather than external file location
 * need to clean up jasmine test suite after reporting test results
-* need to hook into mimosas watch functionailty to monitor test/spec dirs and src dirs
 
 ##License
 
