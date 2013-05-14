@@ -5,7 +5,7 @@ var watch = require('chokidar'),
     logger = require('logmimosa');
 
 var registration = function(config, register) {
-  if (config.isWatch || config.isBuild) {
+  if (config.isWatch) {
     register(['postBuild'], 'beforePackage', _addWatch);
   }
 };
