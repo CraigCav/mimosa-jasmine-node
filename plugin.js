@@ -15,10 +15,35 @@ var _runTests = function(config) {
 
   //TODO: figure out a better way to clean up after reporting test results
   global.jasmine.currentEnv_ = new jasmine.Env();
+  if(config.jasmine_node.coffee == true)
+  {
+    require("coffee-script");
+    var extensions = "js|coffee|litcoffee";
+    var match = ".";
+    var matchall = false;
 
-  jasmine.executeSpecsInFolder(config.jasmine_node);
+    config.jasmine_node.specFolders.forEach(function(path)
+    {
+      try {
+        jasmine.loadHelpersInFolder(path,
+          new RegExp("helpers?\\.(" + extensions + ")$", 'i'));
+      } catch (error) {
+        console.error("Failed loading spec helpers: " + error);
+      }
+    });
+
+    try {
+      config.jasmine_node.regExpSpec = new RegExp(match + (matchall ? "" : "spec\\.") + "(" + extensions + ")$", 'i')
+    } catch (error) {
+      console.error("Failed to build spec-matching regex: " + error);
+    }
+  }
+  try {
+    jasmine.executeSpecsInFolder(config.jasmine_node);
+  } catch (error) {
+    console.error("Failed running jasmine tests: " + error);
+  }
 };
-
 var _addWatch = function(config, options, next) {
   //TODO: consider moving these checks to config.js
   var specFolders = config.jasmine_node.specFolders || [];
@@ -39,10 +64,10 @@ var _addWatch = function(config, options, next) {
     return function (file) {
       logger.green(action + ' file: "' + path.normalize(file) + '"');
 
-      if(serverReloading) 
+      if(serverReloading)
         setTimeout(throttledTestRunner, 500);
       else
-        throttledTestRunner();            
+        throttledTestRunner();
     };
   };
 
@@ -81,7 +106,7 @@ function withTimeout (func, wait) {
             throttling = true;
             setTimeout(function(){
                 throttling = false;
-            }, wait);            
+            }, wait);
         }
     };
 }
