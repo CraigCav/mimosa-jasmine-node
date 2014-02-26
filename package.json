@@ -1,6 +1,6 @@
 {
   "name": "mimosa-jasmine-node",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "homepage": "https://github.com/craigcav/mimosa-jasmine-node",
   "author": "Craig Cavalier",
   "description": "Mimosa module for kicking of your node test suite - whenever you make changes to your code!",
@@ -23,8 +23,7 @@
     "testing"
   ],
   "dependencies": {
-    "jasmine-node": "1.13.1",
-    "chokidar": "0.6.2"
+    "jasmine-node": "1.13.1"
   },
   "license": "MIT",
   "engines": {

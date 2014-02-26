@@ -1,116 +1,49 @@
-"use strict"
+'use strict'
 
-var watch = require('chokidar'),
-    path = require('path'),
+var path = require('path'),
     logger;
 
 var registration = function(config, register) {
   if (config.isWatch) {
     logger = config.log;
-    register(['postBuild'], 'beforePackage', _addWatch);
+    register(['postBuild'], 'beforePackage', runJasmineNodeAutotest);
   }
 };
 
-var _runTests = function(config) {
-  var jasmine = require('jasmine-node');
+var runJasmineNodeAutotest = function(config, options, next) {
+  var jasmineConfig = config.jasmine_node;
 
-  //TODO: figure out a better way to clean up after reporting test results
-  global.jasmine.currentEnv_ = new jasmine.Env();
-  if(config.jasmine_node.coffee == true)
-  {
-    require("coffee-script");
-    var extensions = "js|coffee|litcoffee";
-    var match = ".";
-    var matchall = false;
+  var spawn = require('child_process').spawn;
 
-    config.jasmine_node.specFolders.forEach(function(path)
-    {
-      try {
-        jasmine.loadHelpersInFolder(path,
-          new RegExp("helpers?\\.(" + extensions + ")$", 'i'));
-      } catch (error) {
-        console.error("Failed loading spec helpers: " + error);
-      }
-    });
+  var specFolders = jasmineConfig.specFolders || ['tests', 'specs'],
+      watchFolders = jasmineConfig.watch || ['src'];
 
-    try {
-      config.jasmine_node.regExpSpec = new RegExp(match + (matchall ? "" : "spec\\.") + "(" + extensions + ")$", 'i')
-    } catch (error) {
-      console.error("Failed to build spec-matching regex: " + error);
-    }
-  }
-  try {
-    jasmine.executeSpecsInFolder(config.jasmine_node);
-  } catch (error) {
-    console.error("Failed running jasmine tests: " + error);
-  }
-};
-var _addWatch = function(config, options, next) {
-  //TODO: consider moving these checks to config.js
-  var specFolders = config.jasmine_node.specFolders || [];
-  var sourceFolders = config.serverReload ? config.serverReload.watch || [] : [];
-  var dirsToWatch = specFolders.concat(sourceFolders);
-  var serverReloading = false;
+  var ps = spawn(process.platform === 'win32' ? 'jasmine-node.cmd' : 'jasmine-node', [
+      '--test-dir', specFolders.join(' '),
+      '--watch', watchFolders.join(' '),
+      jasmineConfig.coffee ? '--coffee': '',
+      '--autotest'
+    ]);
 
-  if(!dirsToWatch.length > 0) {
-    next();
-    return;
+  if (!ps) {
+    console.log('shell jasmine-node failed. Please ensure jasmine-node is installed globally(npm install -g jasmine-node)');
+    process.kill();
   }
 
-  var throttledTestRunner = withTimeout(function () {
-    _runTests(config);
-  }, config.jasmine_node.throttleTimeout || 100);
+  ps.stdout.on('data', function(data) {
+    console.log('' + data);
+  });
 
-  var run = function (action) {
-    return function (file) {
-      logger.green(action + ' file: "' + path.normalize(file) + '"');
+  ps.stderr.on('data', function (data) {
+    console.log('stderr: ' + data);
+  });
 
-      if(serverReloading)
-        setTimeout(throttledTestRunner, 500);
-      else
-        throttledTestRunner();
-    };
-  };
-
-  var ignoreFiles = function (name) {
-    if(config.serverReload && config.serverReload.excludeRegex)
-      return name.match(config.serverReload.excludeRegex);
-
-    if(config.serverReload && config.serverReload.exclude)
-      return config.serverReload.exclude.indexOf(name) > -1;
-
-    return false;
-  };
-
-  watch.watch(sourceFolders, { ignored: ignoreFiles, persistent: true })
-    .on('all', function () {
-      serverReloading = true;
-    });
-
-  var watcher = watch.watch(dirsToWatch, { ignored: ignoreFiles, persistent: true });
-
-  watcher.on('change', run('Changed'));
-  watcher.on('unlink', run('Removed'));
-  watcher.on('add', run('Watching'));
-  watcher.on('error', function (error) {
-    //Doing nothing at the moment, just need to trap error event
+  ps.on('close', function (code) {
+    console.log('child process jasmine-node exited with code ' + code);
   });
 
   next();
 };
-
-function withTimeout (func, wait) {
-    var throttling = false;
-    return function(){
-        if ( !throttling ){
-            func.apply(this, arguments);
-            throttling = true;
-            setTimeout(function(){
-                throttling = false;
-            }, wait);
-        }
-    };
-}
 
 module.exports = {
   registration: registration
