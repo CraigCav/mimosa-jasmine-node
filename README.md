@@ -14,12 +14,7 @@ For more information regarding Jasmine-Node, see https://github.com/mhevery/jasm
 
 Add `'mimosa-jasmine-node'` to your list of modules.  Mimosa will install the module for you when you start up.
 
-Design notes, pay no attention
-
-* spawn jasmine node
-* inline the test results, simple output format if possible, keep minimal
-* Make config-less with config options in mimosaconfig rather than external file location
-* need to clean up jasmine test suite after reporting test results
+See [mimosa-jasmine-node-example](https://github.com/CraigCav/mimosa-jasmine-node-example) for a sample project using this module.
 
 ##License
 
